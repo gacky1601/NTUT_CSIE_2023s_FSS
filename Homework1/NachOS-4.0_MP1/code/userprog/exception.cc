@@ -54,6 +54,7 @@ ExceptionHandler(ExceptionType which)
     int type = kernel->machine->ReadRegister(2);
 	int val;
     int status, exit, threadID, programID;
+	int size,fd;
 	DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
     switch (which) {
     case SyscallException:
@@ -74,6 +75,17 @@ ExceptionHandler(ExceptionType which)
 			SysHalt();
 			ASSERTNOTREACHED();
 			break;
+		case SC_PrintInt:
+			val = kernel->machine->ReadRegister(4);
+			{
+				SysPrintInt(val);
+			}
+	  		kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+	  		kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+	 		kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+			return;
+			ASSERTNOTREACHED();
+			break;
 		case SC_Create:
 			val = kernel->machine->ReadRegister(4);
 			{
@@ -81,6 +93,62 @@ ExceptionHandler(ExceptionType which)
 			//cout << filename << endl;
 			status = SysCreate(filename);
 			kernel->machine->WriteRegister(2, (int) status);
+			}
+			kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+			kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+			kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+			return;
+			ASSERTNOTREACHED();
+            break;
+		case SC_Open:
+			val = kernel->machine->ReadRegister(4);
+			{
+				char *filename = &(kernel->machine->mainMemory[val]);
+				cout << filename << endl;
+				fd = SysOpen(filename);
+				kernel->machine->WriteRegister(2, (int) fd);
+			}
+			kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+			kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+			kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+			return;
+			ASSERTNOTREACHED();
+            break;
+		case SC_Read:
+			val = kernel->machine->ReadRegister(4);
+			size = kernel->machine->ReadRegister(5);
+			fd = kernel->machine->ReadRegister(6);
+			{
+				char *buffer = &(kernel->machine->mainMemory[val]);
+				size = SysRead(buffer, size, fd);
+				kernel->machine->WriteRegister(2, (int) size);
+			}
+			kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+			kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+			kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+			return;
+			ASSERTNOTREACHED();
+            break;
+		case SC_Write:
+			val = kernel->machine->ReadRegister(4);
+			size = kernel->machine->ReadRegister(5);
+			fd = kernel->machine->ReadRegister(6);
+			{
+				char *buffer = &(kernel->machine->mainMemory[val]);
+				size = SysWrite(buffer, size, fd);
+				kernel->machine->WriteRegister(2, (int) size);
+			}
+			kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+			kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+			kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+			return;
+			ASSERTNOTREACHED();
+            break;
+		case SC_Close:
+			fd = kernel->machine->ReadRegister(4);
+			{
+				val = SysClose(fd);
+				kernel->machine->WriteRegister(2, (int) val);
 			}
 			kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
 			kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);

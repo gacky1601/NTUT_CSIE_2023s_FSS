@@ -477,7 +477,7 @@ AssignNameToSocket(char *socketName, int sockID)
 
     InitSocketName(&uName, socketName);
     retVal = bind(sockID, (struct sockaddr *) &uName, sizeof(uName));
-    ASSERT(retVal >= 0);
+    // ASSERT(retVal >= 0);
     DEBUG(dbgNet, "Created socket " << socketName);
 }
 

@@ -36,6 +36,9 @@
 #include "copyright.h"
 #include "list.h"
 #include "callback.h"
+#include "filesys.h"
+
+typedef int OpenFileId;
 
 // Interrupts can be disabled (IntOff) or enabled (IntOn)
 enum IntStatus { IntOff, IntOn };
@@ -93,9 +96,12 @@ class Interrupt {
 				// next interrupt
 
     void Halt(); 		// quit and print out stats
-
-    void PrintInt(int number);
-	int CreateFile(char *filename);
+    
+    int CreateFile(char *filename);
+    OpenFileId OpenFile(char *filename);
+    int WriteFile(char *buffer, int size, OpenFileId fd);
+    int CloseFile(OpenFileId fd);
+    int ReadFile(char *buffer, int size, OpenFileId fd);
  
     void YieldOnReturn();	// cause a context switch on return 
 				// from an interrupt handler
